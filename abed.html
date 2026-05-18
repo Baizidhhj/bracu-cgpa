@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRAC University CGPA Calculator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen px-4 py-10 md:py-16">
+    <div class="max-w-[600px] mx-auto flex flex-col gap-5">
+        
+        <!-- Header -->
+        <header class="text-center mb-4">
+            <div class="inline-flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/25 text-[#fbbf24] text-[11px] font-semibold tracking-widest uppercase px-3.5 py-1 rounded-full mb-3">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                    <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                </svg>
+                BRAC University
+            </div>
+            <h1 class="text-3xl font-extrabold text-slate-50 tracking-tight leading-none m-0">
+                CGPA <span class="text-amber-400">Calculator</span>
+            </h1>
+            <p class="text-slate-400 text-sm mt-1.5">Track your semester GPA &amp; project your overall CGPA</p>
+        </header>
+
+        <!-- Past Academic Status Card -->
+        <section class="bg-[#1e293b] border border-white/[0.08] rounded-[18px] p-5">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h2 class="text-slate-50 font-semibold text-sm">Past Academic Status</h2>
+                    <p class="text-slate-400 text-xs mt-0.5">Enter your cumulative record so far</p>
+                </div>
+                <button id="btn-reset" class="flex items-center gap-1.5 bg-transparent border border-white/10 rounded-lg text-slate-400 text-xs px-2.5 py-1.5 cursor-pointer hover:bg-white/5 transition font-medium">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                        <path d="M3 3v5h5"/>
+                    </svg>
+                    Reset
+                </button>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-slate-400 text-[11px] font-medium uppercase tracking-wider mb-1.5">Previous CGPA</label>
+                    <input id="prev-cgpa" class="w-full bg-[#0f172a] border border-white/10 rounded-[10px] text-slate-100 text-sm px-3 py-[9px] outline-none font-mono focus:border-amber-500 transition placeholder-slate-600" type="number" step="0.01" min="0" max="4" placeholder="e.g. 3.45">
+                </div>
+                <div>
+                    <label class="block text-slate-400 text-[11px] font-medium uppercase tracking-wider mb-1.5">Credits Attempted</label>
+                    <input id="prev-credits" class="w-full bg-[#0f172a] border border-white/10 rounded-[10px] text-slate-100 text-sm px-3 py-[9px] outline-none font-mono focus:border-amber-500 transition placeholder-slate-600" type="number" step="0.5" min="0" placeholder="e.g. 45">
+                </div>
+            </div>
+        </section>
+
+        <!-- Current Semester Card -->
+        <section class="bg-[#1e293b] border border-white/[0.08] rounded-[18px] p-5">
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h2 class="text-slate-50 font-semibold text-sm">Current Semester</h2>
+                    <p class="text-slate-400 text-xs mt-0.5">Add your courses below</p>
+                </div>
+                <button id="btn-add-course" class="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/25 rounded-[9px] text-amber-400 text-xs font-semibold px-3 py-1.5 cursor-pointer hover:bg-amber-500/20 transition">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Add Course
+                </button>
+            </div>
+            
+            <div id="courses-container" class="flex flex-col gap-2">
+                <!-- Course items are dynamically injected here -->
+            </div>
+        </section>
+
+        <!-- Results Summary Panel -->
+        <section class="bg-gradient-to-br from-[#1c1408] to-[#0f172a] border border-amber-500/25 rounded-[20px] p-6 relative overflow-hidden">
+            <div class="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-amber-500/60 to-transparent"></div>
+            <div class="text-amber-500/60 text-[10px] font-bold tracking-[0.12em] uppercase mb-4">— Results Summary —</div>
+
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="bg-amber-500/5 border border-amber-500/20 rounded-[14px] p-4">
+                    <div class="text-amber-400/80 text-[10px] font-semibold tracking-wider uppercase mb-1.5">Semester GPA</div>
+                    <div id="sem-gpa" class="text-amber-400 text-4xl font-bold font-mono tracking-tight leading-none">0.00</div>
+                </div>
+                <div id="projected-cgpa-card" class="bg-white/5 border border-white/10 rounded-[14px] p-4 relative transition-colors duration-300">
+                    <span id="probation-tag" class="hidden absolute top-2 right-2 bg-red-500 text-white text-[9px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full">Probation</span>
+                    <div id="projected-cgpa-title" class="text-slate-400 text-[10px] font-semibold tracking-wider uppercase mb-1.5">Projected CGPA</div>
+                    <div id="projected-cgpa" class="text-slate-50 text-4xl font-bold font-mono tracking-tight leading-none">0.00</div>
+                </div>
+            </div>
+
+            <div class="mb-3.5">
+                <div class="flex justify-between text-[10px] text-slate-500 mb-1.5 font-mono tracking-wider">
+                    <span>0.00</span>
+                    <span class="uppercase tracking-widest text-slate-600">CGPA Progress</span>
+                    <span>4.00</span>
+                </div>
+                <div class="h-[5px] bg-white/5 rounded-full overflow-hidden">
+                    <div id="cgpa-progress-bar" class="h-full w-0 bg-gradient-to-r from-[#92400e] via-[#f59e0b] to-[#fde68a] rounded-full transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"></div>
+                </div>
+            </div>
+
+            <div class="flex justify-between text-xs text-slate-500 font-mono border-t border-white/5 pt-3">
+                <span>Sem. Credits: <span id="sem-credits-display" class="text-slate-300">0</span></span>
+                <span>Total Credits: <span id="total-credits-display" class="text-slate-300">0</span></span>
+            </div>
+        </section>
+
+        <!-- Graduation Planner Card -->
+        <section class="bg-[#1e293b] border border-white/[0.08] rounded-[18px] p-5">
+            <div class="mb-4">
+                <h2 class="text-slate-50 font-semibold text-sm">Graduation Planner</h2>
+                <p class="text-slate-400 text-xs mt-0.5">Project the GPA you need to hit your goal</p>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div>
+                    <label class="block text-slate-400 text-[11px] font-medium uppercase tracking-wider mb-1.5">Total Degree Credits</label>
+                    <input id="deg-credits" class="w-full bg-[#0f172a] border border-white/10 rounded-[10px] text-slate-100 text-sm px-3 py-[9px] outline-none font-mono focus:border-amber-500 transition placeholder-slate-600" type="number" step="0.5" min="0" placeholder="e.g. 130">
+                </div>
+                <div>
+                    <label class="block text-slate-400 text-[11px] font-medium uppercase tracking-wider mb-1.5">Target CGPA</label>
+                    <input id="target-cgpa" class="w-full bg-[#0f172a] border border-white/10 rounded-[10px] text-slate-100 text-sm px-3 py-[9px] outline-none font-mono focus:border-amber-500 transition placeholder-slate-600" type="number" step="0.01" min="0" max="4" placeholder="e.g. 3.50">
+                </div>
+            </div>
+
+            <!-- Projection results sub-grid (shows dynamic projections when target conditions are met) -->
+            <div id="planner-results" class="hidden grid grid-cols-2 gap-3">
+                <div class="bg-[#0f172a] border border-white/[0.08] rounded-12 p-3.5 rounded-xl">
+                    <div class="text-slate-400 text-[10px] uppercase tracking-wider mb-1.5 font-medium">Max Reachable</div>
+                    <div id="max-cgpa" class="text-slate-50 text-2xl font-bold font-mono">—</div>
+                    <div id="max-cgpa-sub" class="text-slate-500 text-[11px] mt-1 leading-normal">Remaining credits projections</div>
+                </div>
+                <div id="req-gpa-card" class="bg-[#0f172a] border border-white/[0.08] rounded-12 p-3.5 rounded-xl transition-colors duration-300">
+                    <div id="req-gpa-title" class="text-slate-400 text-[10px] uppercase tracking-wider mb-1.5 font-medium">Required Avg. GPA</div>
+                    <div id="req-gpa" class="text-slate-50 text-2xl font-bold font-mono">—</div>
+                    <div id="req-gpa-sub" class="text-slate-500 text-[11px] mt-1 leading-normal">To reach target CGPA</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Constants & Grading Policies
+        const GRADE_POINTS = {
+            "A+": 4.0, "A": 4.0, "A-": 3.7,
+            "B+": 3.3, "B": 3.0, "B-": 2.7,
+            "C+": 2.3, "C": 2.0, "C-": 1.7,
+            "D+": 1.3, "D": 1.0, "D-": 0.7,
+            "F": 0.0
+        };
+
+        // Application State
+        let courses = [
+            { id: 1, credits: "3", grade: "", isRetake: false, oldGrade: "" },
+            { id: 2, credits: "3", grade: "", isRetake: false, oldGrade: "" },
+            { id: 3, credits: "3", grade: "", isRetake: false, oldGrade: "" }
+        ];
+
+        // Element Selectors
+        const prevCGPAInput = document.getElementById('prev-cgpa');
+        const prevCreditsInput = document.getElementById('prev-credits');
+        const degCreditsInput = document.getElementById('deg-credits');
+        const targetCGPAInput = document.getElementById('target-cgpa');
+        const coursesContainer = document.getElementById('courses-container');
+        const btnAddCourse = document.getElementById('btn-add-course');
+        const btnReset = document.getElementById('btn-reset');
+
+        // Results Summary Elements
+        const semGPADisplay = document.getElementById('sem-gpa');
+        const projectedCGPADisplay = document.getElementById('projected-cgpa');
+        const projectedCard = document.getElementById('projected-cgpa-card');
+        const projectedTitle = document.getElementById('projected-cgpa-title');
+        const probationTag = document.getElementById('probation-tag');
+        const progressBar = document.getElementById('cgpa-progress-bar');
+        const semCreditsDisplay = document.getElementById('sem-credits-display');
+        const totalCreditsDisplay = document.getElementById('total-credits-display');
+
+        // Planner Elements
+        const plannerResultsWrapper = document.getElementById('planner-results');
+        const maxCGPADisplay = document.getElementById('max-cgpa');
+        const maxCGPASub = document.getElementById('max-cgpa-sub');
+        const reqGPADisplay = document.getElementById('req-gpa');
+        const reqGPACard = document.getElementById('req-gpa-card');
+        const reqGPATitle = document.getElementById('req-gpa-title');
+        const reqGPASub = document.getElementById('req-gpa-sub');
+
+        // Event Handlers for Inputs
+        [prevCGPAInput, prevCreditsInput, degCreditsInput, targetCGPAInput].forEach(el => {
+            el.addEventListener('input', calculateEverything);
+        });
+
+        // Initialize Core Actions
+        btnAddCourse.addEventListener('click', addCourse);
+        btnReset.addEventListener('click', resetAll);
+
+        // Core App Initialization
+        renderCourses();
+        calculateEverything();
+
+        function renderCourses() {
+            coursesContainer.innerHTML = '';
+            courses.forEach((course, idx) => {
+                const item = document.createElement('div');
+                item.className = "bg-[#0f172a]/70 border border-white/5 rounded-12 rounded-xl overflow-hidden shadow-sm";
+                item.dataset.id = course.id;
+
+                // Main row contents
+                let gradeOptions = `<option value="" ${!course.grade ? 'selected' : ''} disabled>— Grade —</option>`;
+                Object.keys(GRADE_POINTS).forEach(g => {
+                    gradeOptions += `<option value="${g}" ${course.grade === g ? 'selected' : ''}>${g} (${GRADE_POINTS[g].toFixed(1)})</option>`;
+                });
+
+                let prevGradeOptions = `<option value="" ${!course.oldGrade ? 'selected' : ''} disabled>Pick</option>`;
+                Object.keys(GRADE_POINTS).forEach(g => {
+                    prevGradeOptions += `<option value="${g}" ${course.oldGrade === g ? 'selected' : ''} class="bg-[#1e293b]">${g}</option>`;
+                });
+
+                item.innerHTML = `
+                    <div class="flex items-center gap-2 p-2.5">
+                        <span class="text-slate-500 font-mono text-xs min-w-[28px] tracking-wider pl-1">
+                            C${String(idx + 1).padStart(2, "0")}
+                        </span>
+                        <input
+                            type="number" step="0.5" min="0" placeholder="Cr"
+                            class="w-[54px] bg-[#0f172a] border border-white/10 rounded-[10px] text-slate-100 text-xs p-2 text-center outline-none focus:border-amber-500 font-mono"
+                            value="${course.credits}"
+                            oninput="updateCourseData(${course.id}, 'credits', this.value)"
+                        />
+                        <select
+                            class="flex-1 bg-[#0f172a] border border-white/10 rounded-[10px] text-slate-100 text-xs p-2 outline-none cursor-pointer focus:border-amber-500"
+                            onchange="updateCourseData(${course.id}, 'grade', this.value)"
+                        >
+                            ${gradeOptions}
+                        </select>
+                        <button
+                            onclick="removeCourse(${course.id})"
+                            class="bg-transparent border-0 text-slate-600 hover:text-red-400 p-1.5 rounded-lg flex items-center cursor-pointer transition"
+                        >
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="flex justify-between items-center px-3 py-1.5 bg-black/20 border-t border-white/[0.03]">
+                        <label class="flex items-center gap-1.5 cursor-pointer select-none text-[12px] font-medium transition duration-200 ${course.isRetake ? 'text-amber-400 font-semibold' : 'text-slate-500'}">
+                            <input type="checkbox" class="accent-amber-500 w-3.5 h-3.5 cursor-pointer rounded"
+                                ${course.isRetake ? 'checked' : ''}
+                                onchange="updateCourseData(${course.id}, 'isRetake', this.checked)" />
+                            Retake
+                        </label>
+                        <div class="prev-grade-wrapper ${course.isRetake ? 'flex' : 'hidden'} items-center gap-1.5">
+                            <span class="text-slate-500 text-[10px] uppercase tracking-wider">Prev grade</span>
+                            <select
+                                class="bg-amber-500/10 border border-amber-500/25 text-amber-400 text-[11px] px-2 py-0.5 rounded-[7px] outline-none cursor-pointer font-medium"
+                                onchange="updateCourseData(${course.id}, 'oldGrade', this.value)"
+                            >
+                                ${prevGradeOptions}
+                            </select>
+                        </div>
+                    </div>
+                `;
+
+                coursesContainer.appendChild(item);
+            });
+        }
+
+        // Mutation Helpers
+        function addCourse() {
+            courses.push({ id: Date.now(), credits: "3", grade: "", isRetake: false, oldGrade: "" });
+            renderCourses();
+            calculateEverything();
+        }
+
+        function removeCourse(id) {
+            if (courses.length === 1) {
+                courses = [{ id: Date.now(), credits: "3", grade: "", isRetake: false, oldGrade: "" }];
+            } else {
+                courses = courses.filter(c => c.id !== id);
+            }
+            renderCourses();
+            calculateEverything();
+        }
+
+        function updateCourseData(id, field, value) {
+            const course = courses.find(c => c.id === id);
+            if (course) {
+                course[field] = value;
+                // If structure structural change happened (e.g. retake toggle), we need full re-render
+                if (field === 'isRetake') {
+                    renderCourses();
+                }
+                calculateEverything();
+            }
+        }
+
+        function resetAll() {
+            prevCGPAInput.value = "";
+            prevCreditsInput.value = "";
+            degCreditsInput.value = "";
+            targetCGPAInput.value = "";
+            courses = [
+                { id: Date.now(), credits: "3", grade: "", isRetake: false, oldGrade: "" },
+                { id: Date.now() + 1, credits: "3", grade: "", isRetake: false, oldGrade: "" },
+                { id: Date.now() + 2, credits: "3", grade: "", isRetake: false, oldGrade: "" }
+            ];
+            renderCourses();
+            calculateEverything();
+        }
+
+        function calculateEverything() {
+            const prevCreditsNum = parseFloat(prevCreditsInput.value) || 0;
+            const prevCGPANum = parseFloat(prevCGPAInput.value) || 0;
+
+            let currentSemGP = 0;
+            let currentSemCredits = 0;
+            let adjPoints = prevCreditsNum * prevCGPANum;
+            let adjPrevCredits = prevCreditsNum;
+
+            courses.forEach(c => {
+                const cr = parseFloat(c.credits) || 0;
+                if (c.isRetake && c.oldGrade && GRADE_POINTS[c.oldGrade] !== undefined) {
+                    adjPoints -= cr * GRADE_POINTS[c.oldGrade];
+                    adjPrevCredits -= cr;
+                }
+                if (c.grade && GRADE_POINTS[c.grade] !== undefined) {
+                    currentSemGP += cr * GRADE_POINTS[c.grade];
+                    currentSemCredits += cr;
+                }
+            });
+
+            adjPoints = Math.max(0, adjPoints);
+            adjPrevCredits = Math.max(0, adjPrevCredits);
+
+            // Compute Semester GPA
+            const semGPA = currentSemCredits > 0 ? currentSemGP / currentSemCredits : 0;
+            
+            // Compute Projected CGPA
+            const totalGP = adjPoints + currentSemGP;
+            const totalCredits = adjPrevCredits + currentSemCredits;
+            const newCGPA = totalCredits > 0 ? totalGP / totalCredits : (prevCreditsNum > 0 ? prevCGPANum : 0);
+            
+            // Check Probation
+            const isProbation = totalCredits > 0 && newCGPA < 2.0;
+
+            // Render Results Summary Interface
+            semGPADisplay.innerText = semGPA.toFixed(2);
+            projectedCGPADisplay.innerText = newCGPA.toFixed(2);
+            semCreditsDisplay.innerText = currentSemCredits;
+            totalCreditsDisplay.innerText = totalCredits;
+
+            // Adjust Probation Styles
+            if (isProbation) {
+                projectedCard.className = "bg-red-500/10 border border-red-500/30 rounded-[14px] p-4 relative transition-colors duration-300";
+                projectedCGPADisplay.className = "text-red-400 text-4xl font-bold font-mono tracking-tight leading-none";
+                projectedTitle.className = "text-red-400/80 text-[10px] font-semibold tracking-wider uppercase mb-1.5";
+                probationTag.classList.remove('hidden');
+            } else {
+                projectedCard.className = "bg-white/5 border border-white/10 rounded-[14px] p-4 relative transition-colors duration-300";
+                projectedCGPADisplay.className = "text-slate-50 text-4xl font-bold font-mono tracking-tight leading-none";
+                projectedTitle.className = "text-slate-400 text-[10px] font-semibold tracking-wider uppercase mb-1.5";
+                probationTag.classList.add('hidden');
+            }
+
+            // Adjust CGPA Progress Bar Width
+            const cgpaPercent = Math.min(100, (newCGPA / 4.0) * 100);
+            progressBar.style.width = `${cgpaPercent}%`;
+
+            // Graduation Planner Computation
+            const degCredits = parseFloat(degCreditsInput.value) || 0;
+            const targetNum = parseFloat(targetCGPAInput.value) || 0;
+
+            if (degCredits > 0) {
+                plannerResultsWrapper.classList.remove('hidden');
+                const remaining = Math.max(0, degCredits - totalCredits);
+
+                let maxCGPA = newCGPA;
+                let reqGPA = 0;
+                let impossible = false;
+
+                if (degCredits > totalCredits) {
+                    maxCGPA = (totalGP + remaining * 4.0) / degCredits;
+                    reqGPA = ((degCredits * targetNum) - totalGP) / remaining;
+                    impossible = reqGPA > 4.0;
+                }
+
+                // Render graduation statistics
+                if (remaining > 0) {
+                    maxCGPADisplay.innerText = maxCGPA.toFixed(2);
+                    maxCGPASub.innerText = `4.0 in all ${remaining} remaining credits`;
+                } else {
+                    maxCGPADisplay.innerText = "—";
+                    maxCGPASub.innerText = "No remaining credits";
+                }
+
+                if (targetNum > 0) {
+                    if (remaining > 0) {
+                        if (impossible) {
+                            reqGPADisplay.innerText = "N/A";
+                            reqGPADisplay.className = "text-red-400 text-2xl font-bold font-mono";
+                            reqGPACard.className = "bg-red-500/5 border border-red-500/25 rounded-xl p-3.5 transition-colors duration-300";
+                            reqGPATitle.className = "text-red-400/80 text-[10px] uppercase tracking-wider mb-1.5 font-medium";
+                            reqGPASub.innerText = "Requires GPA > 4.0";
+                            reqGPASub.className = "text-red-500/60 text-[11px] mt-1 leading-normal";
+                        } else if (reqGPA <= 0) {
+                            reqGPADisplay.innerText = "✓";
+                            reqGPADisplay.className = "text-emerald-400 text-2xl font-bold font-mono";
+                            reqGPACard.className = "bg-emerald-500/5 border border-emerald-500/25 rounded-xl p-3.5 transition-colors duration-300";
+                            reqGPATitle.className = "text-emerald-400/80 text-[10px] uppercase tracking-wider mb-1.5 font-medium";
+                            reqGPASub.innerText = "Already guaranteed!";
+                            reqGPASub.className = "text-emerald-500/60 text-[11px] mt-1 leading-normal";
+                        } else {
+                            reqGPADisplay.innerText = reqGPA.toFixed(2);
+                            reqGPADisplay.className = "text-emerald-400 text-2xl font-bold font-mono";
+                            reqGPACard.className = "bg-emerald-500/5 border border-emerald-500/25 rounded-xl p-3.5 transition-colors duration-300";
+                            reqGPATitle.className = "text-emerald-400/80 text-[10px] uppercase tracking-wider mb-1.5 font-medium";
+                            reqGPASub.innerText = `To reach CGPA ${targetNum.toFixed(2)}`;
+                            reqGPASub.className = "text-emerald-500/60 text-[11px] mt-1 leading-normal";
+                        }
+                    } else {
+                        reqGPADisplay.innerText = "—";
+                        reqGPADisplay.className = "text-slate-50 text-2xl font-bold font-mono";
+                        reqGPACard.className = "bg-[#0f172a] border border-white/[0.08] rounded-xl p-3.5 transition-colors duration-300";
+                        reqGPATitle.className = "text-slate-400 text-[10px] uppercase tracking-wider mb-1.5 font-medium";
+                        reqGPASub.innerText = "No credits left to hit targets";
+                        reqGPASub.className = "text-slate-500 text-[11px] mt-1 leading-normal";
+                    }
+                } else {
+                    reqGPADisplay.innerText = "—";
+                    reqGPADisplay.className = "text-slate-50 text-2xl font-bold font-mono";
+                    reqGPACard.className = "bg-[#0f172a] border border-white/[0.08] rounded-xl p-3.5 transition-colors duration-300";
+                    reqGPATitle.className = "text-slate-400 text-[10px] uppercase tracking-wider mb-1.5 font-medium";
+                    reqGPASub.innerText = "To reach target CGPA";
+                    reqGPASub.className = "text-slate-500 text-[11px] mt-1 leading-normal";
+                }
+            } else {
+                plannerResultsWrapper.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
