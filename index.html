@@ -5,99 +5,278 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BRACU CGPA Calculator</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
+    :root{
+      --cyan: #22e5ff;
+      --magenta: #ff2ec4;
+      --purple: #b04bff;
+      --acid: #d7ff3f;
+      --danger: #ff3355;
+      --bg: #050507;
+      --panel: #0b0b10;
     }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background-color: var(--bg);
+      background-image:
+        linear-gradient(rgba(34,229,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(34,229,255,0.04) 1px, transparent 1px);
+      background-size: 34px 34px;
+      color: #d8d9e2;
+    }
+
+    /* Vignette + scanline overlay */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at 50% 0%, rgba(176,75,255,0.08), transparent 55%),
+                  radial-gradient(ellipse at 100% 100%, rgba(34,229,255,0.07), transparent 50%);
+      z-index: 0;
+    }
+
+    .title-font {
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    /* Neon glitch title */
+    .glitch-title {
+      position: relative;
+      letter-spacing: 0.04em;
+      color: #f3fbff;
+      text-shadow:
+        0 0 4px rgba(255,255,255,0.6),
+        0 0 14px rgba(34,229,255,0.85),
+        0 0 34px rgba(34,229,255,0.5),
+        0 0 60px rgba(176,75,255,0.35);
+    }
+    .glitch-title::before,
+    .glitch-title::after {
+      content: attr(data-text);
+      position: absolute;
+      left: 0; top: 0;
+      width: 100%;
+      overflow: hidden;
+      background: transparent;
+    }
+    .glitch-title::before {
+      color: var(--magenta);
+      opacity: 0.75;
+      transform: translate(-2px, 0);
+      animation: glitchTop 5.5s infinite linear;
+      mix-blend-mode: screen;
+    }
+    .glitch-title::after {
+      color: var(--cyan);
+      opacity: 0.75;
+      transform: translate(2px, 0);
+      animation: glitchBot 6.5s infinite linear;
+      mix-blend-mode: screen;
+    }
+    @keyframes glitchTop {
+      0%, 92%, 100% { clip-path: inset(0 0 0 0); transform: translate(-2px,0); }
+      93% { clip-path: inset(10% 0 60% 0); transform: translate(3px,-1px); }
+      95% { clip-path: inset(60% 0 5% 0); transform: translate(-3px,1px); }
+      97% { clip-path: inset(30% 0 40% 0); transform: translate(2px,0); }
+    }
+    @keyframes glitchBot {
+      0%, 90%, 100% { clip-path: inset(0 0 0 0); transform: translate(2px,0); }
+      91% { clip-path: inset(70% 0 5% 0); transform: translate(-2px,1px); }
+      94% { clip-path: inset(15% 0 55% 0); transform: translate(3px,-1px); }
+      98% { clip-path: inset(45% 0 20% 0); transform: translate(-2px,0); }
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(20,20,28,0.9), rgba(10,10,14,0.9));
+      border: 1px solid rgba(34,229,255,0.25);
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.6), 0 0 24px rgba(34,229,255,0.06), inset 0 1px 0 rgba(255,255,255,0.02);
+      clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+      position: relative;
+      z-index: 1;
+    }
+    .panel::before {
+      content: "";
+      position: absolute; top: 0; left: 0;
+      width: 14px; height: 14px;
+      border-top: 2px solid var(--cyan);
+      border-left: 2px solid var(--cyan);
+      opacity: 0.8;
+    }
+
+    .cyber-input, .cyber-select {
+      background: rgba(6,6,10,0.85);
+      border: 1px solid rgba(148,163,184,0.25);
+      color: #eafcff;
+      transition: box-shadow .18s ease, border-color .18s ease, background .18s ease;
+    }
+    .cyber-input::placeholder { color: #4b5262; }
+    .cyber-input:focus, .cyber-select:focus {
+      outline: none;
+      border-color: var(--magenta);
+      box-shadow: 0 0 0 1px var(--magenta), 0 0 16px rgba(255,46,196,0.45);
+      background: rgba(20,6,20,0.6);
+    }
+
+    .btn-neon {
+      background: rgba(34,229,255,0.08);
+      border: 1px solid rgba(34,229,255,0.5);
+      color: var(--cyan);
+      text-shadow: 0 0 8px rgba(34,229,255,0.6);
+      transition: all .15s ease;
+      clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+    }
+    .btn-neon:hover {
+      background: rgba(34,229,255,0.18);
+      box-shadow: 0 0 18px rgba(34,229,255,0.45);
+    }
+
+    .btn-ghost-danger {
+      color: #7d8598;
+      transition: color .15s ease;
+    }
+    .btn-ghost-danger:hover { color: var(--danger); }
+
+    .course-row {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(148,163,184,0.15);
+      clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    }
+    .course-row:hover { border-color: rgba(255,46,196,0.35); }
+
+    .result-hero {
+      background:
+        radial-gradient(ellipse at top left, rgba(176,75,255,0.25), transparent 60%),
+        radial-gradient(ellipse at bottom right, rgba(34,229,255,0.2), transparent 55%),
+        #08080d;
+      border: 1px solid rgba(176,75,255,0.35);
+      clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 24px 100%, 0 calc(100% - 24px));
+    }
+
+    .stat-box {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(34,229,255,0.2);
+    }
+    .stat-value {
+      text-shadow: 0 0 18px currentColor;
+    }
+
+    .badge-warning {
+      background: rgba(255,51,85,0.15);
+      color: #ff5c76;
+      border: 1px solid rgba(255,51,85,0.6);
+      text-shadow: 0 0 10px rgba(255,51,85,0.7);
+      box-shadow: 0 0 14px rgba(255,51,85,0.35);
+      animation: pulseWarn 1.6s ease-in-out infinite;
+    }
+    @keyframes pulseWarn {
+      0%, 100% { box-shadow: 0 0 10px rgba(255,51,85,0.35); }
+      50% { box-shadow: 0 0 22px rgba(255,51,85,0.65); }
+    }
+
+    .warn-text { color: var(--danger); text-shadow: 0 0 6px rgba(255,51,85,0.5); }
+
+    .section-tag {
+      color: var(--acid);
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+    }
+
+    input[type=checkbox] {
+      accent-color: var(--magenta);
+    }
+
+    select.cyber-select { appearance: none; -webkit-appearance: none; }
   </style>
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-800 p-4 sm:p-8 selection:bg-blue-200">
-  
-  <div class="max-w-2xl mx-auto space-y-6">
+<body class="min-h-screen p-4 sm:p-8">
+
+  <div class="max-w-2xl mx-auto space-y-6 relative z-10">
     <!-- Header -->
-    <div class="text-center space-y-2 mb-8">
-      <div class="flex justify-center mb-4 text-blue-800">
-        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <div class="text-center space-y-3 mb-8">
+      <div class="flex justify-center mb-2 text-cyan-300" style="filter: drop-shadow(0 0 10px rgba(34,229,255,0.6));">
+        <svg xmlns="http://www.w3.org/2000/svg" width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
           <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
           <path d="M6 12v5c3 3 9 3 12 0v-5"/>
         </svg>
       </div>
-      <h1 class="text-3xl font-bold text-slate-900">BRACU CGPA Calculator</h1>
-      <p class="text-slate-500">Calculate your semester GPA & track your overall CGPA</p>
+      <h1 class="title-font glitch-title text-3xl sm:text-4xl font-black uppercase" data-text="BRACU CGPA Calculator">BRACU CGPA Calculator</h1>
+      <p class="text-slate-400 text-sm tracking-wide">Calculate your semester GPA &amp; track your overall CGPA</p>
     </div>
 
     <!-- Section 1: Previous Status -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+    <div class="panel p-6">
       <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-semibold text-slate-800">Past Academic Status</h2>
-        <button id="btn-reset" class="text-sm flex items-center gap-1 text-slate-400 hover:text-red-500 transition-colors">
+        <h2 class="section-tag title-font uppercase font-bold">// Past Academic Status</h2>
+        <button id="btn-reset" class="text-xs flex items-center gap-1 btn-ghost-danger">
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
           Reset All
         </button>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-slate-600 mb-1">Previous CGPA</label>
-          <input type="number" id="prev-cgpa" step="0.01" min="0" max="4" placeholder="e.g. 3.45" class="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all">
+          <label class="block text-xs font-semibold text-slate-400 mb-1 tracking-wide">Previous CGPA</label>
+          <input type="number" id="prev-cgpa" step="0.01" min="0" max="4" placeholder="e.g. 3.45" class="cyber-input w-full px-4 py-2 text-sm">
         </div>
         <div>
-          <label class="block text-sm font-medium text-slate-600 mb-1">Credits Attempted</label>
-          <input type="number" id="prev-credits" step="0.5" min="0" placeholder="e.g. 45" class="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all">
+          <label class="block text-xs font-semibold text-slate-400 mb-1 tracking-wide">Credits Attempted</label>
+          <input type="number" id="prev-credits" step="0.5" min="0" placeholder="e.g. 45" class="cyber-input w-full px-4 py-2 text-sm mb-1">
+          <p class="text-[11px] leading-tight warn-text font-medium">Formula: Cumulative Earned + Credits of any active "F" grades.</p>
         </div>
       </div>
     </div>
 
     <!-- Section 2: Current Semester -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+    <div class="panel p-6">
       <div class="flex justify-between items-center mb-5">
-        <h2 class="text-lg font-semibold text-slate-800">Current Semester</h2>
-        <button id="btn-add-course" class="text-sm bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg font-medium hover:bg-blue-100 flex items-center gap-1 transition-colors">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        <h2 class="section-tag title-font uppercase font-bold">// Current Semester</h2>
+        <button id="btn-add-course" class="btn-neon text-xs font-semibold px-3 py-1.5 flex items-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
           Add Course
         </button>
       </div>
 
       <div class="space-y-3">
-        <!-- Table Headers for desktop view -->
-        <div class="hidden sm:flex px-4 pb-1 text-sm font-semibold text-slate-600">
+        <div class="hidden sm:flex px-4 pb-1 text-xs font-semibold text-slate-400 tracking-wide">
           <div class="flex-1">Course</div>
           <div class="w-24 text-center">Credits</div>
           <div class="w-32">Grade</div>
           <div class="w-10"></div>
         </div>
 
-        <div id="courses-container" class="space-y-3">
-          <!-- Courses will be injected here via JS -->
-        </div>
+        <div id="courses-container" class="space-y-3"></div>
       </div>
     </div>
 
     <!-- Section 3: Results Summary -->
-    <div class="bg-gradient-to-br from-blue-800 to-indigo-900 text-white p-6 sm:p-8 rounded-2xl shadow-xl mt-6 relative overflow-hidden">
-      <div class="absolute opacity-10 -right-8 -top-8 pointer-events-none">
-         <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+    <div class="result-hero text-white p-6 sm:p-8 mt-6 relative overflow-hidden">
+      <div class="absolute opacity-10 -right-8 -top-8 pointer-events-none text-cyan-300">
+        <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
       </div>
-      
-      <h2 class="text-xl font-bold mb-6 relative z-10">Results Summary</h2>
-      
+
+      <h2 class="title-font text-lg font-bold mb-6 relative z-10 uppercase tracking-wide text-cyan-200">Results Summary</h2>
+
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 relative z-10">
-        <div class="bg-white/10 rounded-xl p-5 backdrop-blur-sm border border-white/10">
-          <p class="text-blue-200 text-sm font-medium mb-1">Semester GPA</p>
-          <p id="res-sem-gpa" class="text-4xl font-bold tracking-tight">0.00</p>
+        <div class="stat-box p-5">
+          <p class="text-cyan-300 text-xs font-semibold mb-1 tracking-wide">Semester GPA</p>
+          <p id="res-sem-gpa" class="title-font stat-value text-4xl font-bold tracking-tight text-cyan-300">0.00</p>
         </div>
-        
-        <div id="res-proj-box" class="rounded-xl p-5 backdrop-blur-sm border shadow-inner bg-white/10 border-white/10">
+
+        <div id="res-proj-box" class="stat-box p-5">
           <div class="flex justify-between items-start mb-1">
-            <p id="res-proj-title" class="text-sm font-medium text-blue-200">Projected CGPA</p>
-            <span id="res-probation-badge" class="hidden bg-red-500 text-white text-[10px] uppercase font-bold px-2 py-1 rounded tracking-wider shadow-sm">
+            <p id="res-proj-title" class="text-xs font-semibold tracking-wide text-purple-300">Projected CGPA</p>
+            <span id="res-probation-badge" class="hidden badge-warning text-[10px] uppercase font-bold px-2 py-1 tracking-wider">
               Probation
             </span>
           </div>
-          <p id="res-proj-cgpa" class="text-4xl font-bold tracking-tight">0.00</p>
+          <p id="res-proj-cgpa" class="title-font stat-value text-4xl font-bold tracking-tight text-purple-300">0.00</p>
         </div>
-        
-        <div class="sm:col-span-2 flex justify-between text-sm text-blue-100 border-t border-blue-700/50 pt-4 mt-2 font-medium">
+
+        <div class="sm:col-span-2 flex justify-between text-xs text-slate-400 border-t border-cyan-500/20 pt-4 mt-2 font-medium tracking-wide">
           <span id="res-sem-credits">Semester Credits: 0</span>
           <span id="res-total-credits">Total Overall Credits: 0</span>
         </div>
@@ -105,37 +284,39 @@
     </div>
 
     <!-- Section 4: Graduation Planner -->
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mt-6">
+    <div class="panel p-6 mt-6">
       <div class="mb-5">
-        <h2 class="text-lg font-semibold text-slate-800">Graduation Planner</h2>
-        <p class="text-sm text-slate-500">Plan your future semesters to reach your goal</p>
+        <h2 class="section-tag title-font uppercase font-bold">// Graduation Planner</h2>
+        <p class="text-sm text-slate-400 mt-1">Plan your future semesters to reach your goal</p>
       </div>
-      
+
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div>
-          <label class="block text-sm font-medium text-slate-600 mb-1">Total Degree Credits</label>
-          <input type="number" id="plan-total-credits" step="0.5" min="0" placeholder="e.g. 130 or 136" class="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all">
+          <label class="block text-xs font-semibold text-slate-400 mb-1 tracking-wide">Total Degree Credits</label>
+          <input type="number" id="plan-total-credits" step="0.5" min="0" placeholder="e.g. 130 or 136" class="cyber-input w-full px-4 py-2 text-sm">
         </div>
         <div>
-          <label class="block text-sm font-medium text-slate-600 mb-1">Target CGPA</label>
-          <input type="number" id="plan-target-cgpa" step="0.01" min="0" max="4" placeholder="e.g. 3.50" class="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all">
+          <label class="block text-xs font-semibold text-slate-400 mb-1 tracking-wide">Target CGPA</label>
+          <input type="number" id="plan-target-cgpa" step="0.01" min="0" max="4" placeholder="e.g. 3.50" class="cyber-input w-full px-4 py-2 text-sm">
         </div>
       </div>
 
       <div id="plan-results" class="grid grid-cols-1 sm:grid-cols-2 gap-4 hidden">
-        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
-          <p class="text-slate-500 text-sm font-medium mb-1">Max Reachable CGPA</p>
-          <p id="plan-max-cgpa" class="text-2xl font-bold text-slate-800">N/A</p>
-          <p id="plan-max-text" class="text-xs text-slate-400 mt-1">If you score 4.0 in remaining credits</p>
+        <div class="stat-box p-4">
+          <p class="text-slate-400 text-xs font-semibold mb-1 tracking-wide">Max Reachable CGPA</p>
+          <p id="plan-max-cgpa" class="title-font text-2xl font-bold text-cyan-300">N/A</p>
+          <p id="plan-max-text" class="text-[11px] text-slate-500 mt-1">If you score 4.0 in remaining credits</p>
         </div>
-        
-        <div id="plan-req-box" class="p-4 rounded-xl border bg-blue-50 border-blue-100">
-          <p id="plan-req-title" class="text-sm font-medium mb-1 text-blue-700">Required Avg. GPA</p>
-          <p id="plan-req-gpa" class="text-2xl font-bold text-blue-800">-</p>
-          <p id="plan-req-text" class="text-xs mt-1 text-blue-500"></p>
+
+        <div id="plan-req-box" class="p-4 stat-box border-magenta-500">
+          <p id="plan-req-title" class="text-xs font-semibold mb-1 tracking-wide" style="color: var(--magenta);">Required Avg. GPA</p>
+          <p id="plan-req-gpa" class="title-font text-2xl font-bold" style="color: var(--magenta);">-</p>
+          <p id="plan-req-text" class="text-[11px] mt-1" style="color: rgba(255,46,196,0.7);"></p>
         </div>
       </div>
     </div>
+
+    <p class="text-center text-[11px] text-slate-600 pt-4 tracking-widest uppercase">System Online // GPA Engine v2.0</p>
 
   </div>
 
@@ -200,41 +381,41 @@
       let html = '';
       courses.forEach((course, index) => {
         html += `
-          <div class="course-row flex flex-col bg-slate-50 rounded-xl border border-slate-100 hover:border-blue-100 transition-colors overflow-hidden" data-id="${course.id}">
+          <div class="course-row flex flex-col transition-colors overflow-hidden" data-id="${course.id}">
             <div class="flex flex-wrap sm:flex-nowrap gap-3 items-end sm:items-center p-3">
-              <div class="w-full sm:flex-1 px-2 font-medium text-slate-700 sm:pb-0 pb-1 mb-1 sm:mb-0 border-b sm:border-0 border-slate-200/60 flex justify-between items-center">
+              <div class="w-full sm:flex-1 px-2 font-semibold text-slate-300 sm:pb-0 pb-1 mb-1 sm:mb-0 border-b sm:border-0 border-slate-700/40 flex justify-between items-center">
                 <span>Course ${index + 1}</span>
               </div>
               
               <div class="w-20 sm:w-24">
-                <label class="sm:hidden block text-xs font-medium text-slate-500 mb-1">Credits</label>
-                <input type="number" step="0.5" min="0" placeholder="Credits" data-field="credits" value="${course.credits}" class="w-full text-center rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none">
+                <label class="sm:hidden block text-[11px] font-semibold text-slate-400 mb-1">Credits</label>
+                <input type="number" step="0.5" min="0" placeholder="Credits" data-field="credits" value="${course.credits}" class="cyber-input w-full text-center px-3 py-2 text-sm">
               </div>
               
               <div class="flex-1 sm:w-32">
-                <label class="sm:hidden block text-xs font-medium text-slate-500 mb-1">Grade</label>
-                <select data-field="grade" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none appearance-none">
+                <label class="sm:hidden block text-[11px] font-semibold text-slate-400 mb-1">Grade</label>
+                <select data-field="grade" class="cyber-select w-full px-3 py-2 text-sm">
                   ${getGradeOptions(course.grade)}
                 </select>
               </div>
 
               <div class="w-10 sm:w-auto flex justify-end pb-1 sm:pb-0">
-                <button class="btn-remove p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Remove Course">
+                <button class="btn-remove p-2 btn-ghost-danger hover:bg-red-500/10 rounded-none transition-colors" title="Remove Course">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
                 </button>
               </div>
             </div>
 
-            <div class="bg-slate-100/50 px-4 py-2 border-t border-slate-100 flex justify-between items-center">
+            <div class="bg-black/30 px-4 py-2 border-t border-slate-700/30 flex justify-between items-center">
               <label class="flex items-center gap-2 text-sm cursor-pointer select-none">
-                <input type="checkbox" data-field="isRetake" ${course.isRetake ? 'checked' : ''} class="rounded border-slate-300 text-blue-600 focus:ring-blue-500 w-4 h-4 cursor-pointer">
-                <span class="${course.isRetake ? 'text-blue-700 font-medium' : 'text-slate-500'}">Retaking this course?</span>
+                <input type="checkbox" data-field="isRetake" ${course.isRetake ? 'checked' : ''} class="rounded-none w-4 h-4 cursor-pointer">
+                <span class="${course.isRetake ? 'text-fuchsia-300 font-medium' : 'text-slate-500'}">Retaking this course?</span>
               </label>
 
               ${course.isRetake ? `
                 <div class="flex items-center gap-2 animate-in fade-in duration-200">
-                  <span class="text-xs font-medium text-slate-500 hidden sm:inline">Previous Grade:</span>
-                  <select data-field="oldGrade" class="rounded-md border border-slate-300 px-2 py-1 text-xs bg-white focus:border-blue-500 outline-none text-slate-700">
+                  <span class="text-[11px] font-medium text-slate-500 hidden sm:inline">Previous Grade:</span>
+                  <select data-field="oldGrade" class="cyber-select rounded-none px-2 py-1 text-xs text-slate-200">
                     ${getOldGradeOptions(course.oldGrade)}
                   </select>
                 </div>
@@ -291,14 +472,14 @@
 
       // Probation Styling
       if (isProbation) {
-        elResProjBox.className = "rounded-xl p-5 backdrop-blur-sm border shadow-inner bg-red-900/40 border-red-500/50";
-        elResProjTitle.className = "text-sm font-medium text-red-200";
-        elResProjCgpa.className = "text-4xl font-bold tracking-tight text-red-400";
+        elResProjBox.className = "stat-box p-5 bg-red-950/40 border-red-500/60";
+        elResProjTitle.className = "text-xs font-semibold tracking-wide text-red-300";
+        elResProjCgpa.className = "title-font stat-value text-4xl font-bold tracking-tight text-red-400";
         elResProbationBadge.classList.remove('hidden');
       } else {
-        elResProjBox.className = "rounded-xl p-5 backdrop-blur-sm border shadow-inner bg-white/10 border-white/10";
-        elResProjTitle.className = "text-sm font-medium text-blue-200";
-        elResProjCgpa.className = "text-4xl font-bold tracking-tight";
+        elResProjBox.className = "stat-box p-5";
+        elResProjTitle.className = "text-xs font-semibold tracking-wide text-purple-300";
+        elResProjCgpa.className = "title-font stat-value text-4xl font-bold tracking-tight text-purple-300";
         elResProbationBadge.classList.add('hidden');
       }
 
@@ -334,17 +515,19 @@
         }
 
         // Target Impossible Styling
-        const reqBoxBaseClasses = "p-4 rounded-xl border ";
         if (isTargetImpossible) {
-          elPlanReqBox.className = reqBoxBaseClasses + "bg-red-50 border-red-100";
-          elPlanReqTitle.className = "text-sm font-medium mb-1 text-red-600";
-          elPlanReqGpa.className = "text-2xl font-bold text-red-700";
-          elPlanReqText.className = "text-xs mt-1 text-red-500";
+          elPlanReqBox.className = "p-4 stat-box bg-red-950/40 border-red-500/60";
+          elPlanReqTitle.className = "text-xs font-semibold mb-1 tracking-wide text-red-300";
+          elPlanReqGpa.className = "title-font text-2xl font-bold text-red-400";
+          elPlanReqText.className = "text-[11px] mt-1 text-red-400/80";
         } else {
-          elPlanReqBox.className = reqBoxBaseClasses + "bg-blue-50 border-blue-100";
-          elPlanReqTitle.className = "text-sm font-medium mb-1 text-blue-700";
-          elPlanReqGpa.className = "text-2xl font-bold text-blue-800";
-          elPlanReqText.className = "text-xs mt-1 text-blue-500";
+          elPlanReqBox.className = "p-4 stat-box";
+          elPlanReqTitle.className = "text-xs font-semibold mb-1 tracking-wide";
+          elPlanReqTitle.style.color = "var(--magenta)";
+          elPlanReqGpa.className = "title-font text-2xl font-bold";
+          elPlanReqGpa.style.color = "var(--magenta)";
+          elPlanReqText.className = "text-[11px] mt-1";
+          elPlanReqText.style.color = "rgba(255,46,196,0.7)";
         }
       } else {
         elPlanResults.classList.add('hidden');
